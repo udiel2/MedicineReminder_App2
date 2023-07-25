@@ -29,6 +29,7 @@ public class CalendarViewHolder extends RecyclerView.ViewHolder implements View.
     @Override
     public void onClick(View view)
     {
+        dayOfMonth.setBackgroundResource(R.drawable.calendar_cell2);
         onItemListener.onItemClick(getAdapterPosition(), (String) dayOfMonth.getText());
     }
 }

@@ -194,11 +194,14 @@
     </androidx.core.widget.NestedScrollView>
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/add_reminder"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
         android:layout_margin="16dp"
         android:background="#84FFFF"
-        android:src="@android:drawable/ic_input_add" />"
+        android:src="@android:drawable/ic_input_add"
+        android:tint="#FFFFFF"
+        app:backgroundTint="#88C4E8" />"
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

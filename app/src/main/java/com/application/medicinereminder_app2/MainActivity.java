@@ -1,6 +1,10 @@
 package com.application.medicinereminder_app2;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+
+import android.content.Context;
 import android.os.Bundle;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -11,9 +15,13 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.os.Bundle;
+import android.util.AttributeSet;
 import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.time.LocalDate;
 import java.time.YearMonth;
@@ -25,21 +33,31 @@ public class MainActivity extends AppCompatActivity implements CalendarAdapter.O
     private TextView monthYearText;
     private RecyclerView calendarRecyclerView;
     private LocalDate selectedDate;
+    FloatingActionButton add_reminder;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
         initWidgets();
         selectedDate = LocalDate.now();
         setMonthView();
+//        add_reminder=findViewById(R.id.add_reminder);
+        add_reminder.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                System.out.println("jjojoj");
+            }
+        });
     }
 
     private void initWidgets()
     {
         calendarRecyclerView = findViewById(R.id.calendarRecyclerView);
         monthYearText = findViewById(R.id.monthYearTV);
+        add_reminder=findViewById(R.id.add_reminder);
     }
 
     private void setMonthView()
@@ -49,7 +67,7 @@ public class MainActivity extends AppCompatActivity implements CalendarAdapter.O
 
         FragmentManager fragmentManager = getSupportFragmentManager();
         FragmentTransaction fragmentTransaction=fragmentManager.beginTransaction();
-        Fragment fragment = new month_view(daysInMonth);
+        Fragment fragment = new month_view(daysInMonth,selectedDate);
         fragmentTransaction.replace(R.id.frameLayout,fragment);
         fragmentTransaction.commit();
 //        CalendarAdapter calendarAdapter = new CalendarAdapter(daysInMonth, this);
@@ -57,6 +75,7 @@ public class MainActivity extends AppCompatActivity implements CalendarAdapter.O
 //        calendarRecyclerView.setLayoutManager(layoutManager);
 //        calendarRecyclerView.setAdapter(calendarAdapter);
     }
+
 
     private ArrayList<String> daysInMonthArray(LocalDate date)
     {

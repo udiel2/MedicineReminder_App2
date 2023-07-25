@@ -55,4 +55,5 @@ class CalendarAdapter extends RecyclerView.Adapter<CalendarViewHolder>
     {
         void onItemClick(int position, String dayText);
     }
+
 }
