@@ -1,7 +1,12 @@
 package com.example.MedReminder.alarm;
 
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.content.Context;
 import android.content.Intent;
 import android.media.MediaPlayer;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Vibrator;
 import androidx.annotation.Nullable;
@@ -88,6 +93,7 @@ public class ReminderFragment extends Fragment implements ReminderContract.View 
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_reminder, container, false);
         unbinder = ButterKnife.bind(this, view);
+
         return view;
     }
 
@@ -103,6 +109,7 @@ public class ReminderFragment extends Fragment implements ReminderContract.View 
         long[] pattern = { 0, 1000, 10000 };
         mVibrator.vibrate(pattern, 0);
 
+
         mMediaPlayer = MediaPlayer.create(getContext(), R.raw.cuco_sound);
         mMediaPlayer.setLooping(true);
         mMediaPlayer.start();
@@ -110,6 +117,36 @@ public class ReminderFragment extends Fragment implements ReminderContract.View 
         tvMedTime.setText(medicineAlarm.getStringTime());
         tvMedicineName.setText(medicineAlarm.getPillName());
         tvDoseDetails.setText(medicineAlarm.getFormattedDose());
+
+
+        // בניית ההתראה
+        Notification.Builder builder = null; // להוסיף כיצד תרצה שהאייקון של ההתראה יראה
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            builder = new Notification.Builder(getActivity(), "MedReminder_Channel")
+                    .setContentTitle("Medicine Reminder")
+                    .setContentText("Reminder for " + medicineAlarm.getPillName())
+                    .setSmallIcon(R.drawable.icon_blister);
+        }
+        // הפעלת השירות בזמן שאתה שומר תזכורת
+        Intent serviceIntent = new Intent(getActivity(), ReminderReceiver.class);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            // עבור גרסאות אנדרואיד 8.0 ומעלה יש צורך להתחיל שירות עם startForegroundService
+            getActivity().startForegroundService(serviceIntent);
+        } else {
+            getActivity().startService(serviceIntent);
+        }
+
+// כדי לפתוח את האפליקציה כאשר לוחצים על ההתראה, צריך להוסיף Intent ו-PendingIntent
+        Intent intent = new Intent(getActivity(), ReminderActivity.class);
+        PendingIntent pendingIntent = PendingIntent.getActivity(getActivity(), medicineAlarm.getAlarmId(), intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        builder.setContentIntent(pendingIntent);
+
+// הצגת ההתראה
+        NotificationManager notificationManager = (NotificationManager) getActivity().getSystemService(Context.NOTIFICATION_SERVICE);
+        notificationManager.notify(medicineAlarm.getAlarmId(), builder.build());
+
+
+
     }
 
     @Override

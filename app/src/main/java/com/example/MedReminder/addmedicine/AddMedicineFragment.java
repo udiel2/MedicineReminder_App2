@@ -7,6 +7,8 @@ import android.app.TimePickerDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import androidx.annotation.Nullable;
+
+import com.example.MedReminder.alarm.ReminderReceiver;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import androidx.fragment.app.Fragment;
 import androidx.appcompat.widget.AppCompatCheckBox;
@@ -45,6 +47,11 @@ import butterknife.ButterKnife;
 import butterknife.OnClick;
 import butterknife.OnItemSelected;
 import butterknife.Unbinder;
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.content.Context;
+import android.os.Build;
 
 import static android.content.Context.ALARM_SERVICE;
 
@@ -55,6 +62,7 @@ import static android.content.Context.ALARM_SERVICE;
 public class AddMedicineFragment extends Fragment implements AddMedicineContract.View {
 
     public static final String ARGUMENT_EDIT_MEDICINE_ID = "ARGUMENT_EDIT_MEDICINE_ID";
+    private static final String CHANNEL_ID = "MedReminder_Channel";
 
     public static final String ARGUMENT_EDIT_MEDICINE_NAME = "ARGUMENT_EDIT_MEDICINE_NAME";
 
@@ -389,8 +397,56 @@ public class AddMedicineFragment extends Fragment implements AddMedicineContract
                             AlarmManager.INTERVAL_DAY * 7, operation);
                 }
             }
+            // קריאה לפונקציה שתיצור את הערוץ במקרה והוא עדיין לא קיים
+            createNotificationChannel();
+
+// בניית ההתראה
+            Notification.Builder builder = null; // להוסיף כיצד תרצה שהאייקון של ההתראה יראה
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                Calendar calendar = Calendar.getInstance();
+                builder = new Notification.Builder(getActivity(), CHANNEL_ID)
+                        .setContentTitle("Medicine Reminder")
+                        .setContentText("Reminder for " + pill_name + "\n"+"Time " + calendar.getTime())
+                        .setSmallIcon(R.drawable.icon_blister);
+            }
+            // הפעלת השירות בזמן שאתה שומר תזכורת
+            Intent serviceIntent = new Intent(getActivity(), ReminderReceiver.class);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                // עבור גרסאות אנדרואיד 8.0 ומעלה יש צורך להתחיל שירות עם startForegroundService
+                getActivity().startForegroundService(serviceIntent);
+            } else {
+                getActivity().startService(serviceIntent);
+            }
+
+// כדי לפתוח את האפליקציה כאשר לוחצים על ההתראה, צריך להוסיף Intent ו-PendingIntent
+            Intent intent = new Intent(getActivity(), ReminderActivity.class);
+            PendingIntent pendingIntent = PendingIntent.getActivity(getActivity(), alarmId, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+            builder.setContentIntent(pendingIntent);
+// הצגת ההתראה בזמן שנבחר על ידי המשתמש
+            NotificationManager notificationManager = (NotificationManager) getActivity().getSystemService(Context.NOTIFICATION_SERVICE);
+//
+// יצירת התאריך והשעה בהתאם לזמן שנבחר על ידי המשתמש
+            Calendar calendar = Calendar.getInstance();
+            calendar.set(Calendar.HOUR_OF_DAY, hour);
+            calendar.set(Calendar.MINUTE, minute);
+            calendar.set(Calendar.SECOND, 0);
+
+// כאשר התאריך והשעה בהתאם לזמן שנבחר עברו, התראה תוצג
+            notificationManager.notify(alarmId, builder.build());
+
             Toast.makeText(getContext(), "Alarm for " + pill_name + " is set successfully", Toast.LENGTH_SHORT).show();
             showMedicineList();
         }
     };
+    private void createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            CharSequence name = "MedReminder Channel";
+            String description = "MedReminder Notifications";
+            int importance = NotificationManager.IMPORTANCE_DEFAULT;
+            NotificationChannel channel = new NotificationChannel(CHANNEL_ID, name, importance);
+            channel.setDescription(description);
+            NotificationManager notificationManager = getActivity().getSystemService(NotificationManager.class);
+            notificationManager.createNotificationChannel(channel);
+        }
+    }
 }
