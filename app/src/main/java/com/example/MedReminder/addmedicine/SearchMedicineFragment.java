@@ -278,15 +278,15 @@ public class SearchMedicineFragment extends Fragment {
             dialog.cancel();
 
             // קוד להעברה לפרגמנט האב ושליחת מידע
-            AddMedicineFragment addMedicineFragment = new AddMedicineFragment();
+
             Bundle args = new Bundle();
             args.putString("medName2", context.get(0)); // לדוגמה, שליחת שם תרופה
             // הוספת ערכים נוספים ל-Bundle...
-            addMedicineFragment.setArguments(args);
+            getParentFragment().setArguments(args);
 
             // הסרת הפרגמנט הילד וחזרה לפרגמנט האב
             requireActivity().getSupportFragmentManager().beginTransaction().remove(this).commit();
-            requireActivity().getSupportFragmentManager().beginTransaction().replace(R.id.contentFrame, addMedicineFragment).commit();
+            requireActivity().getSupportFragmentManager().beginTransaction().replace(R.id.contentFrame, getParentFragment()).commit();
         });
         builder.setNegativeButton("No", (dialog, which) -> {
             dialog.cancel();

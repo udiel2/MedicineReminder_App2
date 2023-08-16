@@ -2,6 +2,7 @@ package com.example.MedReminder.addmedicine;
 
 import android.app.Activity;
 import android.app.AlarmManager;
+import android.app.AlertDialog;
 import android.app.PendingIntent;
 import android.app.TimePickerDialog;
 import android.content.Intent;
@@ -11,11 +12,15 @@ import androidx.annotation.Nullable;
 
 import com.example.MedReminder.alarm.ReminderReceiver;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+
+import androidx.appcompat.widget.SearchView;
 import androidx.fragment.app.Fragment;
 import androidx.appcompat.widget.AppCompatCheckBox;
 import androidx.appcompat.widget.AppCompatSpinner;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -38,7 +43,9 @@ import com.example.MedReminder.views.DayViewCheckBox;
 import com.example.MedReminder.views.RobotoBoldTextView;
 
 import java.io.IOException;
+import java.net.URLDecoder;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
@@ -63,6 +70,8 @@ import static android.content.Context.ALARM_SERVICE;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 
 /**
  * 
@@ -127,6 +136,13 @@ public class AddMedicineFragment extends Fragment implements AddMedicineContract
     private int hour, minute;
 
     Unbinder unbinder;
+    private MyAdapter adapter;
+
+    private AlertDialog.Builder builder;
+    private AlertDialog dialog ;
+
+    private ArrayList<String> data=new ArrayList<>();
+    private ArrayList<String> data_herf=new ArrayList<>();
 
 
 
@@ -211,27 +227,145 @@ public class AddMedicineFragment extends Fragment implements AddMedicineContract
     }
     @OnClick({R.id.searchb})
     public  void On_Search_Click(){
-        FloatingActionButton fab = Objects.requireNonNull(getActivity()).findViewById(R.id.fab_edit_task_done);
-        fab.setVisibility(View.INVISIBLE);
-        System.out.println("---------------------------------------------------------Click------------------------------------------------------");
-        FragmentManager fragmentManager = getFragmentManager();
-        FragmentTransaction fragmentTransaction = fragmentManager
-                .beginTransaction();
 
-        SearchMedicineFragment fragment3 = new SearchMedicineFragment();
-        fragmentTransaction.replace(R.id.contentFrame, fragment3);
-//provide the fragment ID of your first fragment which you have given in
-//fragment_layout_example.xml file in place of first argument
-        fragmentTransaction.addToBackStack(null);
-        fragmentTransaction.commit();
+        RecyclerView recyclerView;
 
-        SearchMedicineFragment searchMedicineFragment = new SearchMedicineFragment();
-// הצגת הפרגמנט הילד במחלקת האקטיביטי או בפרגמנט האב
-        requireActivity().getSupportFragmentManager()
-                .beginTransaction()
-                .replace(R.id.contentFrame, searchMedicineFragment)
-                .addToBackStack(null) // הוספת הפרגמנט להיסטוריה של החזרה (בדרך כלל)
-                .commit();
+        builder = new AlertDialog.Builder(getContext());
+        View dialogView = getLayoutInflater().inflate(R.layout.serach_dialog, null);
+        builder.setView(dialogView);
+        SearchView searchView=dialogView.findViewById(R.id.searchview);
+        searchView.setIconified(false);
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                return true;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                data.clear();
+                data_herf.clear();
+                String html="https://drug.co.il/?s=";
+                html=html+newText;
+                AddMedicineFragment.FetchRecipeTask task = new AddMedicineFragment.FetchRecipeTask(new AddMedicineFragment.Callback() {
+                    @Override
+                    public void onDocumentReady(Document document) {
+                        onPostExecute1(document);
+
+                    }
+                    @Override
+                    public void onError(Exception e) {
+
+                    }
+                });
+                task.execute(html);
+                return true;
+
+            }
+        });
+
+        recyclerView = dialogView.findViewById(R.id.recyclerView_sreach);
+        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+        // הוספת נתונים נוספים לרשימה
+        adapter = new MyAdapter(getContext(), data);
+        recyclerView.setAdapter(adapter);
+
+        dialog = builder.create();
+        dialog.show();
+        adapter.setOnItemClickedListener(position -> {
+            System.out.println("----------------------Click---------------------");
+            AlertDialog.Builder builder2 = new AlertDialog.Builder(getContext());
+            String url= URLDecoder.decode(data_herf.get(position),"UTF8");
+            System.out.println(url);
+            String message="";
+            AddMedicineFragment.FetchRecipeTask task = new AddMedicineFragment.FetchRecipeTask(new AddMedicineFragment.Callback() {
+                @Override
+                public void onDocumentReady(Document document) {
+                    ArrayList<String> data2= SelectMedecine(document);
+                    getActivity().runOnUiThread(() -> {
+                        showAlertDialog(data2); // כאן אתה מציג את ה-AlertDialog
+                    });
+
+                }
+                @Override
+                public void onError(Exception e) {
+
+                }
+            });
+            task.execute(url);
+            // Set the message show for the Alert time
+        });
+
+    }
+    private String formatHebrewText(String input) {
+        String[] words = input.split(" ");
+        StringBuilder result = new StringBuilder();
+
+        for (int i = 0; i < words.length; i++) {
+            if (i > 0) {
+                result.append(" ");
+            }
+            if (i == 2 ){
+                result.append(": ");
+            }
+            String word = words[i];
+            if (isHebrewWord(word)) {
+                result.append(word);
+            }
+        }
+
+
+        return result.toString();
+    }
+
+    // פונקציה לבדיקה האם מילה מכילה רק תווים בשפת העברית
+    private boolean isHebrewWord(String word) {
+        for (int i = 0; i < word.length(); i++) {
+            char currentChar = word.charAt(i);
+            if (Character.UnicodeBlock.of(currentChar) != Character.UnicodeBlock.HEBREW) {
+                return false;
+            }
+        }
+        return true;
+    }
+    private void showAlertDialog(ArrayList<String> context) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        builder.setMessage(context.get(1) + "\n" + context.get(2) + "\n" + context.get(3));
+        builder.setTitle(context.get(0));
+        builder.setCancelable(false);
+        builder.setPositiveButton("Yes", (dialog2, which) -> {
+            editMedName.setText(context.get(0).replace("'",""));
+            dialog2.cancel();
+            dialog.cancel();
+
+
+        });
+        builder.setNegativeButton("No", (dialog, which) -> {
+            dialog.cancel();
+        });
+        AlertDialog alertDialog = builder.create();
+        alertDialog.show();
+    }
+    private ArrayList<String> SelectMedecine(Document document){
+        ArrayList<String> data2=new ArrayList<>();
+//        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        String message="";
+        System.out.println("----------------------DocumentReady---------------------");
+        String unit=document.select("#primary > div:nth-child(1) > div:nth-child(2) > div > div.card-body > div:nth-child(1)").text();
+        unit= formatHebrewText(unit);
+        System.out.println(unit);
+        String active_Ingredient=document.select("#ing1 > p > a").text();
+        String active_Ingredient_amount=document.select("#primary > div:nth-child(2) > div:nth-child(1) > div > div:nth-child(2) > div > div.card-body > div:nth-child(2) > div > p").text();
+        System.out.println(active_Ingredient);
+        System.out.println(active_Ingredient_amount);
+        String name=document.select("#primary > div:nth-child(1) > div:nth-child(1) > div > div.card-body > div:nth-child(1) > div.row.justify-content-between.align-items-start > p:nth-child(1)").text();
+
+        data2.add(name);
+        data2.add(active_Ingredient);
+        data2.add(active_Ingredient_amount);
+        data2.add(unit);
+
+        return data2;
 
     }
     @OnClick({ R.id.every_day, R.id.dv_monday, R.id.dv_tuesday, R.id.dv_wednesday,
@@ -522,6 +656,60 @@ public class AddMedicineFragment extends Fragment implements AddMedicineContract
             channel.setDescription(description);
             NotificationManager notificationManager = getActivity().getSystemService(NotificationManager.class);
             notificationManager.createNotificationChannel(channel);
+        }
+    }
+
+    public interface Callback {
+        void onDocumentReady(Document document);
+        void onError(Exception e);
+    }
+
+    private class FetchRecipeTask extends AsyncTask<String, Void, Void> {
+
+        private AddMedicineFragment.Callback callback;
+
+        @Override
+        protected void onPostExecute(Void unused) {
+            adapter.notifyDataSetChanged();
+            super.onPostExecute(unused);
+        }
+
+        public FetchRecipeTask(AddMedicineFragment.Callback callback) {
+            this.callback = callback;
+        }
+
+        @Override
+        protected Void doInBackground(String... urls) {
+            try {
+                String url = urls[0];
+                Document document = Jsoup.connect(url).get();
+                if (callback != null) {
+                    callback.onDocumentReady(document);
+                }
+            } catch (IOException e) {
+                if (callback != null) {
+                    callback.onError(e);
+                }
+            }
+            return null;
+        }
+
+    }
+    private void onPostExecute1(Document document) {
+//        System.out.println(document);
+        if (document != null) {
+///#primary
+            String p_number = document.select("#searchResults_count_label").text();
+            Elements elements = document.select("#primary");
+            for (Element li : document.select("article[id]")) {
+                String name=li.select("h2").text();
+                data.add(name);
+                data_herf.add(li.select("a").attr("href"));
+                System.out.println(li.select("a").attr("href"));
+                System.out.println(li.select("h2").text());
+            }
+
+//        callback.onAllProductsReady();
         }
     }
 

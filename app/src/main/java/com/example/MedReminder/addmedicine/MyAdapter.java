@@ -57,10 +57,14 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
     public class ViewHolder extends RecyclerView.ViewHolder {
 
         TextView textView;
+        TextView textView2;
+        TextView textView3;
 
         public ViewHolder(@NonNull View itemView, OnItemClickedListener listener) {
             super(itemView);
             textView = itemView.findViewById(R.id.textView);
+//            textView2 = itemView.findViewById(R.id.textView2);
+//            textView3 = itemView.findViewById(R.id.textView3);
 
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
