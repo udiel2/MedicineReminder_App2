@@ -102,4 +102,9 @@ public class AddMedicinePresenter implements AddMedicineContract.Presenter, Medi
             mAddMedicineView.showEmptyMedicineError();
         }
     }
+    public void saveMedicine(MedicineAlarm alarm, Pills pills) {
+        AuditTrailManager.logEvent("Medicine saved: " + pills.getPillName());
+        mMedicineRepository.saveMedicine(alarm, pills);
+        ExportManager.exportAuditTrailToPDF();
+    }
 }
