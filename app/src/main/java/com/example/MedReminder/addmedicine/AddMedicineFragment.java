@@ -5,6 +5,7 @@ import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.app.TimePickerDialog;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import androidx.annotation.Nullable;
 
@@ -13,11 +14,15 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import androidx.fragment.app.Fragment;
 import androidx.appcompat.widget.AppCompatCheckBox;
 import androidx.appcompat.widget.AppCompatSpinner;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
+
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.LinearLayout;
@@ -32,6 +37,7 @@ import com.example.MedReminder.data.source.Pills;
 import com.example.MedReminder.views.DayViewCheckBox;
 import com.example.MedReminder.views.RobotoBoldTextView;
 
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -55,6 +61,9 @@ import android.os.Build;
 
 import static android.content.Context.ALARM_SERVICE;
 
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+
 /**
  * 
  */
@@ -66,8 +75,14 @@ public class AddMedicineFragment extends Fragment implements AddMedicineContract
 
     public static final String ARGUMENT_EDIT_MEDICINE_NAME = "ARGUMENT_EDIT_MEDICINE_NAME";
 
+    private AddMedicineContract.Presenter mPresenter;
     @BindView(R.id.edit_med_name)
     EditText editMedName;
+
+    private String name;
+
+    @BindView(R.id.searchb)
+    Button searchb;
 
     @BindView(R.id.every_day)
     AppCompatCheckBox everyDay;
@@ -113,7 +128,7 @@ public class AddMedicineFragment extends Fragment implements AddMedicineContract
 
     Unbinder unbinder;
 
-    private AddMedicineContract.Presenter mPresenter;
+
 
     private View rootView;
 
@@ -125,6 +140,9 @@ public class AddMedicineFragment extends Fragment implements AddMedicineContract
         fragment.setArguments(args);
         return fragment;
     }
+
+
+
 
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
@@ -141,6 +159,26 @@ public class AddMedicineFragment extends Fragment implements AddMedicineContract
         unbinder = ButterKnife.bind(this, rootView);
         setCurrentTime();
         setSpinnerDoseUnits();
+        FloatingActionButton fab = Objects.requireNonNull(getActivity()).findViewById(R.id.fab_edit_task_done);
+//        fab.setImageResource(R.drawable.ic_done);
+//        fab.setOnClickListener(setClickListener);
+        fab.setVisibility(View.VISIBLE);
+        Bundle args = getArguments();
+        if (args != null) {
+            String medName = args.getString("medName2");
+            if(medName==null){
+                return rootView;
+            }
+            String unitName = args.getString("unitName2");
+            System.out.println("_____Back: "+medName);
+            System.out.println("_____Back: "+unitName);
+            editMedName.setText(medName.toString());
+            name=medName;
+            for(int i=0;i<doseUnitList.size() ;i++){
+
+            }
+            // עשה משהו עם הערך שנשלח, לדוגמה, הצג אותו בכמהוית
+        }
         return rootView;
     }
 
@@ -171,7 +209,31 @@ public class AddMedicineFragment extends Fragment implements AddMedicineContract
         super.onDestroyView();
         unbinder.unbind();
     }
+    @OnClick({R.id.searchb})
+    public  void On_Search_Click(){
+        FloatingActionButton fab = Objects.requireNonNull(getActivity()).findViewById(R.id.fab_edit_task_done);
+        fab.setVisibility(View.INVISIBLE);
+        System.out.println("---------------------------------------------------------Click------------------------------------------------------");
+        FragmentManager fragmentManager = getFragmentManager();
+        FragmentTransaction fragmentTransaction = fragmentManager
+                .beginTransaction();
 
+        SearchMedicineFragment fragment3 = new SearchMedicineFragment();
+        fragmentTransaction.replace(R.id.contentFrame, fragment3);
+//provide the fragment ID of your first fragment which you have given in
+//fragment_layout_example.xml file in place of first argument
+        fragmentTransaction.addToBackStack(null);
+        fragmentTransaction.commit();
+
+        SearchMedicineFragment searchMedicineFragment = new SearchMedicineFragment();
+// הצגת הפרגמנט הילד במחלקת האקטיביטי או בפרגמנט האב
+        requireActivity().getSupportFragmentManager()
+                .beginTransaction()
+                .replace(R.id.contentFrame, searchMedicineFragment)
+                .addToBackStack(null) // הוספת הפרגמנט להיסטוריה של החזרה (בדרך כלל)
+                .commit();
+
+    }
     @OnClick({ R.id.every_day, R.id.dv_monday, R.id.dv_tuesday, R.id.dv_wednesday,
             R.id.dv_thursday, R.id.dv_friday, R.id.dv_saturday, R.id.dv_sunday })
     public void onCheckboxClicked(View view) {
@@ -251,6 +313,8 @@ public class AddMedicineFragment extends Fragment implements AddMedicineContract
         showTimePicker();
     }
 
+
+
     private void showTimePicker() {
         Calendar mCurrentTime = Calendar.getInstance();
         hour = mCurrentTime.get(Calendar.HOUR_OF_DAY);
@@ -272,7 +336,18 @@ public class AddMedicineFragment extends Fragment implements AddMedicineContract
         Calendar mCurrentTime = Calendar.getInstance();
         hour = mCurrentTime.get(Calendar.HOUR_OF_DAY);
         minute = mCurrentTime.get(Calendar.MINUTE);
+        int day=mCurrentTime.get(Calendar.DAY_OF_WEEK);
+        dayOfWeekList[day]=true;
+        System.out.println("Day : "+day);
+        LinearLayout ll = (LinearLayout) rootView.findViewById(R.id.checkbox_layout);
+        for (int i = 0; i < ll.getChildCount(); i++) {
+            View v = ll.getChildAt(i);
+            if(i==day-1){
+                ((DayViewCheckBox) v).setChecked(true);
+                onCheckboxClicked(v);
+            }
 
+        }
         tvMedicineTime.setText(String.format(Locale.getDefault(), "%d:%d", hour, minute));
     }
 
@@ -449,4 +524,6 @@ public class AddMedicineFragment extends Fragment implements AddMedicineContract
             notificationManager.createNotificationChannel(channel);
         }
     }
+
+
 }

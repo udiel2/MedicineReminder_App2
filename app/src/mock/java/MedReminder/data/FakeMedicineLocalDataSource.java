@@ -1,4 +1,4 @@
-package com.example.MedReminder.data;
+package MedReminder.data;
 
 import androidx.annotation.VisibleForTesting;
 

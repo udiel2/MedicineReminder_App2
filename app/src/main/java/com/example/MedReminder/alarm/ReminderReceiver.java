@@ -21,6 +21,7 @@ public class ReminderReceiver extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         // קוד טיפול בתזכורות והפעלת ההתראות ייכתב כאן
+        
 
 
         // לדוגמה:

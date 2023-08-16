@@ -24,4 +24,6 @@
     <string name="no_taken_med_history">You have not taken any medicine</string>
     <string name="no_ignored_history">Well Done</string>
     <string name="menu_stats">Monthly Report</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>
