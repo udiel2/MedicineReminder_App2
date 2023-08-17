@@ -16,6 +16,8 @@ Set reminders for each medication based on your preferred schedule - whether it'
 The app's intuitive design ensures a seamless experience for users of all ages.
 ### Notifications
 Receive timely reminders through notifications on your device, so you never miss a dose.
+### Interactive Calendar
+The build-in calendar provides a visual representation of your medication schedule. You can see which days you need to take your medicines at a glance.
 
 # Getting started
 Before you begin, make sure you have:
@@ -52,6 +54,15 @@ Click "OK" to install and run the app on your phone.
 Once the app is installed, open it on your Android device.
 Follow the instructions provided in the app's user interface to add medicines, set reminders, and explore its features.
 Remember to keep the device connected to the computer during the initial installation and running process.
+
+# Usage
+1. Tap on the "Add Medicine" button
+1. Enter the medicine name and dosage
+1. Choose the way of taking, of the medicine
+1. Choose the desired frequency and confirm
+1. Open the calendar view from the main menu
+1. Tap on a specific day to view more details about the medications due on that day
+1. Wait for the app to remind you
 
 # Showcasing the App
 Check out our [YouTube Video](https://youtu.be/P8vC0_UVnKI) to get a visual walkthrough of the Medicine Reminder App! This video provides an in-depth demonstration of the app's features, guiding you through the process of adding medicines, setting reminders, and using the interactive calendar. Watch the video to see how the app can simplify your medication management.
