@@ -54,4 +54,4 @@ Follow the instructions provided in the app's user interface to add medicines, s
 Remember to keep the device connected to the computer during the initial installation and running process.
 
 # Showcasing the App
-Check out our [YouTube Video](https://youtu.be/drLLqFLXZD8) to get a visual walkthrough of the Medicine Reminder App! This video provides an in-depth demonstration of the app's features, guiding you through the process of adding medicines, setting reminders, and using the interactive calendar. Watch the video to see how the app can simplify your medication management.
+Check out our [YouTube Video](https://youtu.be/P8vC0_UVnKI) to get a visual walkthrough of the Medicine Reminder App! This video provides an in-depth demonstration of the app's features, guiding you through the process of adding medicines, setting reminders, and using the interactive calendar. Watch the video to see how the app can simplify your medication management.
